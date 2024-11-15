@@ -6,6 +6,7 @@
         v-for="option in options"
         :key="option.value"
         :selected="option.selected"
+        @input="handleInput(option.selected)"
       >{{ option.text }}</option>
     </select>
   </div>
@@ -26,6 +27,11 @@ export default {
       required: true
     }
   },
+  methods: {
+    handleInput(newValue) {
+      this.$emit("update", newValue );
+    }
+  }
 }
 </script>
 
