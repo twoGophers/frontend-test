@@ -1,9 +1,10 @@
 <template>
   <fieldset>
-    <legend>{{ label }}</legend>
+    <legend class="form-builder__label">{{ label }}</legend>
     <div
       v-for="option in options"
       :key="option.value"
+      class="age"
     >
       <input
         type="radio"
@@ -44,24 +45,20 @@ export default {
     };
   },
   methods: {
-    // Поиск опции с `selected: true`
     findSelectedOption() {
       const selectedOption = this.options.find(option => option.selected);
       return selectedOption ? selectedOption.value : null;
     }
   },
   watch: {
-    // Следим за изменениями props.value и обновляем внутреннее значение
     value(newValue) {
       this.selectedValue = newValue;
     },
-    // Уведомляем родителя об изменении
     selectedValue(newValue) {
       this.$emit("update", newValue);
     }
   },
   mounted() {
-    // Если значение не передано, устанавливаем из `selected`
     if (!this.value && this.selectedValue) {
       this.$emit("update", this.selectedValue);
     }
@@ -69,6 +66,14 @@ export default {
 };
 </script>
 
-<style scoped>
-/* Добавьте стили при необходимости */
+<style lang="scss" scoped>
+.age {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  margin: 5px;
+  label {
+    font-size: 14px;
+  }
+}
 </style>

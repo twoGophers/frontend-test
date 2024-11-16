@@ -2,7 +2,7 @@
   <div class="form-builder">
     <form @submit.prevent="onSubmit">
       <div v-if="data" class="form-builder__form-block">
-        <div v-for="[key, section] in Object.entries(data)" :key="key">
+        <div v-for="[key, section] in Object.entries(data)" :key="key" class="form-builder__form-section">
           <h2 v-if="section.name">{{ section.name }}</h2>
           <div v-for="item in section.items" :key="item.name">
             <component
@@ -13,15 +13,17 @@
               v-model="formValues[key][item.name]"
               @update="(value) => handleUpdate(key, item.name, value)"
             />
-            <p v-if="errors[key]?.[item.name]" class="error">
-              {{ errors[key][item.name] }}
-            </p>
+            <div class="error"> 
+              <p v-if="errors[key]?.[item.name]" class="error__message">
+                {{ errors[key][item.name] }}
+              </p>
+            </div>
           </div>
         </div>
       </div>
       <div class="form-builder__btn">
-        <button type="submit">Отправить</button>
-        <button type="reset">Стереть</button>
+        <button class="form-builder__btn-send" type="submit">Отправить</button>
+        <button class="form-builder__btn-clear" type="reset">Стереть</button>
       </div>
     </form>
   </div>
@@ -170,28 +172,101 @@ export default {
 };
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss" >
+
+input[type="text"],
+input[type="password"] {
+  width: 100%;
+  padding: 8px 16px;
+  background-color: #f9f9f9;
+  border: 1px solid #dcdcdc;
+  border-radius: 6px;
+  font-size: 16px;
+  color: #333333;
+}
+
+label {
+  font-size: 12px;
+}
+
+h2 {
+  font-size: 24px;
+}
 .form-builder {
-  max-width: 400px;
+  max-width: 600px;
   margin: 0 auto;
   margin-top: 100px;
+  background-color: #ffffff;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  padding: 20px;
 
   &__form-block {
     display: flex;
     flex-direction: row;
     width: 100%;
     justify-content: space-between;
+    gap: 20px;
+  }
+
+  &__form-section{
+    width: calc((100% - 20px) / 2);
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
   }
 
   &__btn {
     display: flex;
     justify-content: end;
+    margin-top: 20px;
+    button {
+      color: #ffffff;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      margin-left: 20px;
+    }
   }
-
-  .error {
-    color: red;
-    font-size: 0.875rem;
-    margin-top: 0.25rem;
+  &__btn-send {
+    background: #0078d4;
+    &:active {
+      background-color: #003f8f;
+    }
+    &:hover {
+      background-color: #005bb5;
+    }
+  }
+  &__btn-clear {
+    background: #bc8f8f;
+    &:active {
+      background-color: #b08989;
+    }
+    &:hover {
+      background-color: #c49b9b;
+    }
+  }
+  &__label {
+    font-size: 16px;
+    counter-reset: #414141;
   }
 }
+.error {
+  height: 20px;
+  position: relative;
+  &__message {
+    color: red;
+    font-size: 12px;
+    animation: show-error-message 0.3s linear;
+  }
+}
+
+@keyframes show-error-message {
+  0%{ opacity: 0;}
+  100%{ opacity: 1;}
+}
+
 </style>

@@ -1,6 +1,6 @@
 <template>
   <div>
-    <p>{{ label }}</p>
+    <p class="form-builder__label">{{ label }}</p>
     <input v-bind="$attrs" :type="type" v-model="localValue" />
   </div>
 </template>

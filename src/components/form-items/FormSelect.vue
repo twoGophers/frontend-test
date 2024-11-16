@@ -1,7 +1,7 @@
 <template>
-  <div>
-    <p>{{ label }}</p>
-    <select v-model="selectedValue" @change="handleInput">
+  <div class="select">
+    <p class="form-builder__label">{{ label }}</p>
+    <select class="select__list" v-model="selectedValue" @change="handleInput">
       <option
         v-for="option in options"
         :key="option.value"
@@ -60,6 +60,14 @@ export default {
 };
 </script>
 
-<style scoped>
-/* Стили */
+<style lang="scss" scoped>
+ .select {
+  &__list {
+      border-radius: 5px;
+      width: 100%;
+      height: 32px;
+      padding: 0px 16px;
+      border: 1px solid rgb(221, 221, 221);
+    }
+  }
 </style>
