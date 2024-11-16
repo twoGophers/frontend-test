@@ -1,13 +1,14 @@
 <template>
   <div>
     <p>{{ label }}</p>
-    <select>
+    <select v-model="selectedValue" @change="handleInput">
       <option
         v-for="option in options"
         :key="option.value"
-        :selected="option.selected"
-        @input="handleInput(option.selected)"
-      >{{ option.text }}</option>
+        :value="option.value"
+      >
+        {{ option.text }}
+      </option>
     </select>
   </div>
 </template>
@@ -15,26 +16,50 @@
 <script>
 export default {
   name: "FormSelect",
-
   props: {
     label: {
       type: String,
-      default: ''
+      default: ""
     },
-
     options: {
-      type: Object,
+      type: Array,
       required: true
+    },
+    value: {
+      type: [String, Number],
+      default: ""
     }
   },
+  data() {
+    return {
+      selectedValue: this.value || this.findSelectedOption() || ""
+    };
+  },
   methods: {
-    handleInput(newValue) {
-      this.$emit("update", newValue );
+    findSelectedOption() {
+      const selectedOption = this.options.find(option => option.selected);
+      return selectedOption ? selectedOption.value : null;
+    },
+    handleInput() {
+      this.$emit("update", this.selectedValue);
+    }
+  },
+  watch: {
+    value(newValue) {
+      this.selectedValue = newValue;
+    },
+    selectedValue(newValue) {
+      this.$emit("update", newValue);
+    }
+  },
+  mounted() {
+    if (!this.value && this.selectedValue) {
+      this.$emit("update", this.selectedValue);
     }
   }
-}
+};
 </script>
 
 <style scoped>
-
+/* Стили */
 </style>

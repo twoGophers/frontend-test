@@ -9,8 +9,13 @@
               :is="getComponents(item.type)"
               :label="item.label"
               :options="item.additional?.options"
+              :name="`${key}.${item.name}`"
+              v-model="formValues[key][item.name]"
               @update="(value) => handleUpdate(key, item.name, value)"
             />
+            <p v-if="errors[key]?.[item.name]" class="error">
+              {{ errors[key][item.name] }}
+            </p>
           </div>
         </div>
       </div>
@@ -23,7 +28,7 @@
 </template>
 
 <script>
-import { reactive } from 'vue';
+import { reactive } from "vue";
 import FormInput from "@/components/form-items/FormInput.vue";
 import FormSelect from "@/components/form-items/FormSelect.vue";
 import FormRadio from "@/components/form-items/FormRadio.vue";
@@ -34,21 +39,30 @@ export default {
   data() {
     return {
       data: null,
-      formValues: reactive({}), 
+      formValues: reactive({}),
+      errors: reactive({}), // Ошибки
     };
   },
   methods: {
     async loadJson() {
       try {
-        const response = await fetch('/form-config.json');
+        const response = await fetch("/form-config.json");
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         this.data = await response.json();
-        console.log(this.data);
-        
+
+        // Инициализация formValues и errors
+        Object.entries(this.data).forEach(([sectionKey, section]) => {
+          this.formValues[sectionKey] = {};
+          this.errors[sectionKey] = {};
+          section.items.forEach((item) => {
+            this.formValues[sectionKey][item.name] = ""; // Пустое значение
+            this.errors[sectionKey][item.name] = null; // Ошибки по умолчанию
+          });
+        });
       } catch (error) {
-        console.error('Error loading JSON:', error);
+        console.error("Error loading JSON:", error);
       }
     },
 
@@ -56,9 +70,82 @@ export default {
       if (!this.formValues[section]) {
         this.formValues[section] = {};
       }
-
       this.formValues[section][name] = value;
+
+      // Убираем ошибку при изменении
+      if (value) {
+        this.errors[section][name] = null;
+      }
     },
+
+    validateForm() {
+      let isValid = true;
+
+      Object.entries(this.formValues).forEach(([sectionKey, fields]) => {
+        Object.entries(fields).forEach(([fieldName, fieldValue]) => {
+          if (!fieldValue) {
+            // Поле пустое
+            this.errors[sectionKey][fieldName] = "Это поле обязательно.";
+            isValid = false;
+          }
+        });
+
+        // Проверка на совпадение pass и repeat-pass
+        if (
+          fields.pass &&
+          fields["repeat-pass"] &&
+          fields.pass !== fields["repeat-pass"]
+        ) {
+          this.errors[sectionKey]["repeat-pass"] = "Пароли не совпадают.";
+          isValid = false;
+        }
+      });
+
+      return isValid;
+    },
+
+    // отправка формы
+    async onSubmit() {
+      if (this.validateForm()) {
+        // Убираем repeat-pass перед отправкой
+        const sanitizedFormValues = JSON.parse(JSON.stringify(this.formValues));
+        Object.keys(sanitizedFormValues).forEach((sectionKey) => {
+          delete sanitizedFormValues[sectionKey]["repeat-pass"];
+        });
+
+        // Логика отправки запроса
+        const url = "https://jsonplaceholder.typicode.com/posts"; // Фейковый URL
+        const requestBody = {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(sanitizedFormValues),
+        };
+
+        try {
+          console.log("Отправка данных:", sanitizedFormValues);
+
+          // Фейковый запрос
+          const response = await fetch(url, requestBody);
+
+          // Проверка статуса
+          if (!response.ok) {
+            throw new Error(`Ошибка: ${response.status} ${response.statusText}`);
+          }
+
+          const responseData = await response.json();
+          console.log("Успешный ответ:", responseData);
+          alert("Форма успешно отправлена!");
+        } catch (error) {
+          console.error("Ошибка при отправке формы:", error.message);
+          alert("Произошла ошибка при отправке данных. Попробуйте позже.");
+        }
+      } else {
+        console.warn("Форма содержит ошибки.");
+      }
+    },
+
 
     getComponents(type) {
       return {
@@ -68,10 +155,6 @@ export default {
         input: FormInput,
       }[type];
     },
-
-    onSubmit() {
-      console.log( this.formValues);
-    }
   },
 
   created() {
@@ -79,25 +162,36 @@ export default {
   },
 
   components: {
-    FormPassword, FormRadio, FormSelect, FormInput
-  }
+    FormPassword,
+    FormRadio,
+    FormSelect,
+    FormInput,
+  },
 };
 </script>
 
 <style lang="scss" scoped>
-  .form-builder {
-    max-width: 400px;
-    margin: 0 auto;
-    margin-top: 100px;
-    &__form-block {
-      display: flex;
-      flex-direction: row;
-      width: 100%;
-      justify-content: space-between;
-    }
-    &__btn {
-      display: flex;
-      justify-content: end;
-    }
+.form-builder {
+  max-width: 400px;
+  margin: 0 auto;
+  margin-top: 100px;
+
+  &__form-block {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    justify-content: space-between;
   }
+
+  &__btn {
+    display: flex;
+    justify-content: end;
+  }
+
+  .error {
+    color: red;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+  }
+}
 </style>
